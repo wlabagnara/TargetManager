@@ -6,7 +6,6 @@ Target Manager Application
 import view.MainView as mv
 import client.KeepAlive as ka
 import server.TargetSimulator as ts
-from threading import Thread
 
 ## Utility methods
 
