@@ -44,8 +44,9 @@ class TargetSimulator:
         while self.running:
                 data, addr = self.sock.recvfrom(1024)
                 self.msg_count_rx_curr = self.msg_count_rx_curr + 1
-                print (f"Server: message {self.msg_count_rx_curr} received from client")
-                self.sock.sendto(str.encode(str(self.msg_count_rx_curr)), addr)
+                # print (f"Server: message {self.msg_count_rx_curr} received from client")
+                msg = f' {data.decode()} - {self.msg_count_rx_curr}'  
+                self.sock.sendto(msg.encode(), addr)
                 self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
                 # test code for send only

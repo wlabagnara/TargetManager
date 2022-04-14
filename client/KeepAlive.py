@@ -14,7 +14,7 @@ class KeepAlive:
         self.msg_str = msg_str    # "Hello, World!"
 
         self.thread = th.Thread(target=self.hello)
-        self.time_ticks = 0.200
+        self.time_ticks = 0.050
         self.run_time_tot = 0 # total number of time ticks
         self.running = False
 
@@ -36,8 +36,8 @@ class KeepAlive:
             self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
             data, addr = self.sock.recvfrom(1024)
-            msg_rx = f"Client: message {data.decode()} received from server"
-            print(f"{msg_rx}")
+            msg_rx = f"Client received message: {data.decode()}"
+            # print(f"{msg_rx}")
             self.rx_queue.append(msg_rx)
             self.msg_count_rx_curr = self.msg_count_rx_curr + 1
             self.run_time_tot = self.run_time_tot + self.time_ticks
