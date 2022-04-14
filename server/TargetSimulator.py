@@ -16,8 +16,9 @@ class TargetSimulator:
         self.thread = th.Thread(target=self.receiver)
         self.running = False
 
-        self.msg_count = 0          # Message counts
-        self.msg_count_previous = 0
+        self.msg_count_rx_curr = 0 # Message counts
+        self.msg_count_rx_prev = 0
+        self.msg_count_tx_curr = 0   
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)    # IPv4 and UDP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow address/port reuse immediately 
@@ -25,12 +26,16 @@ class TargetSimulator:
         # self.sock.settimeout(0.3)                       
         self.sock.bind((udp_ip, udp_port))
 
-    def get_receive_counts(self):
-        return self.msg_count
+    def get_rx_counts(self):
+        return self.msg_count_rx_curr
+
+    def get_tx_counts(self):
+        return self.msg_count_tx_curr
 
     def get_rx_sync(self):
-        if (self.running == True) and (self.msg_count > self.msg_count_previous):
-            self.msg_count_previous = self.msg_count
+        """ determines if the simulator (server) is actively receiving messages """
+        if (self.running == True) and (self.msg_count_rx_curr > self.msg_count__rx_prev):
+            self.msg_count_rx_prev = self.msg_count_rx_curr
             return True
         else:
              return False
@@ -38,9 +43,10 @@ class TargetSimulator:
     def receiver(self):  # this method is invoked as a thread 
         while self.running:
                 data, addr = self.sock.recvfrom(1024)
-                self.msg_count = self.msg_count + 1
-                print (f"Server: message {self.msg_count} received from client")
-                self.sock.sendto(str.encode(str(self.msg_count)), addr)
+                self.msg_count_rx_curr = self.msg_count_rx_curr + 1
+                print (f"Server: message {self.msg_count_rx_curr} received from client")
+                self.sock.sendto(str.encode(str(self.msg_count_rx_curr)), addr)
+                self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
                 # test code for send only
                 # if self.udp_ip == "localhost": # make loopback address socket compliant

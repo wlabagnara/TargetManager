@@ -15,30 +15,45 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         # self.resizable(0,0) # uncomment to disable resizing of app window
         pl = PhotoImage(file='C:/Projects/TargetManager/view/main.png') # convert to relative path!
         self.iconphoto(False, pl)
+
+        style = ttk.Style()
+        style.theme_use('xpnative') # default, xpnative, winnative, vista, classic, clam, alt
+        # style.configure('TLabelframe.Label', font = ('helvetica', 12, 'bold'), foreground='cyan')  
+        
         self.protocol("WM_DELETE_WINDOW", self.on_closing) # handle window's close icon 'X'
 
         self.create_panel()
         self.create_window_tabs()
         self.create_config_frame(self.frm1)
-    
+        self.create_data_view(self.frm2)
+
         # initialize client/server objects and start their threads
         self.client = client
         self.server = server
         self.start_threads()
 
     def create_panel(self):
-        panel = ttk.Frame(self, borderwidth=2, relief='groove') 
+        
+        # panel = ttk.Frame(self, borderwidth=2, relief='groove') 
+        panel = ttk.LabelFrame(self, text="STATUS") 
+    
         panel.rowconfigure(0, weight=1)
-        panel.grid(column=0, row=0, sticky=tk.NSEW, padx=5, pady=5)
+        panel.grid(column=0, row=0, sticky=tk.NSEW, padx=10, pady=10)
 
-        status_lbl = ttk.Label(panel, text="STATUS: ")
-        status_lbl.grid(column=0, row=0, sticky='w')
+        # ttk.Label(panel, text="STATUS:").grid(column=0, row=0, sticky='nesw', padx=5)
+        ttk.Label(panel, text="RX").grid(column=1, row=0, sticky='nesw', padx=5)
+        ttk.Label(panel, text="TX").grid(column=2, row=0, sticky='nesw', padx=5)
 
         self.rx_sync_var = tk.StringVar()
-        self.rx_sync_lbl = ttk.Label(panel, text='RX', background='red', foreground='white', textvariable=self.rx_sync_var)
-        self.rx_sync_lbl.grid(column=1, row=0, sticky='e')
-        self.rx_sync_var.set("LOS")
-        
+        self.rx_sync_var.set("--")
+        self.rx_sync_lbl = ttk.Label(panel, background='red', foreground='white', textvariable=self.rx_sync_var)
+        self.rx_sync_lbl.grid(column=1, row=1, sticky='nesw', padx=5, pady=2)
+
+        self.tx_sync_var = tk.StringVar()
+        self.tx_sync_var.set("--")
+        self.tx_sync_lbl = ttk.Label(panel, background='blue', foreground='white', textvariable=self.tx_sync_var)
+        self.tx_sync_lbl.grid(column=2, row=1, sticky='nesw', padx=5, pady=2)
+
     def create_window_tabs(self):
         # create a notebook to have window tabs
         nb = ttk.Notebook(self)
@@ -51,8 +66,17 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         self.frm2 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.frm2, text='Data  ', underline=0, padding=5)
 
+    def create_data_view(self, tab):
+        self.body = ttk.Frame(tab)
+        self.data = tk.Text(self.body, height=20)
+        self.data.grid(column=0, row=1)
+        scrollbar = ttk.Scrollbar(self.body, orient='vertical', command=self.data.yview)
+        scrollbar.grid(column=1, row=1, sticky=tk.NS)
+        self.data['yscrollcommand'] = scrollbar.set
+        self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
+
     def start_threads(self):
-        self.check_rx_sync()
+        self.check_status()
         self.client.start() # start server then client thread
         self.server.start()
 
@@ -65,13 +89,21 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         if tkmb.askokcancel("Are you sure?", "Do you really want to quit?") == True:
             self.exit_app()
 
-    def check_rx_sync(self):
-        self.rx_sync_var.set(str(self.server.get_receive_counts())) 
-        if self.server.get_rx_sync() == True:
+    def check_status(self):
+        self.rx_sync_var.set(str(self.client.get_rx_counts())) 
+
+        while self.client.rx_data_avail(): # will 'block' in loop until queue is 'drained'
+            msg = self.client.get_rx_data() + '\n'
+            self.data.insert('1.0', msg)
+
+        if self.client.get_rx_sync() == True:
             self.rx_sync_lbl.config(background='green')
         else:
             self.rx_sync_lbl.config(background='red')
-        self.after(1000, self.check_rx_sync) # poll for receiver sync
+
+        self.tx_sync_var.set(str(self.client.get_tx_counts())) 
+        
+        self.after(1000, self.check_status) # poll for status changes every second
 
     def create_config_frame(self, tab):
         self.config = ttk.LabelFrame(tab, text="IP Configuration") 
