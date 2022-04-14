@@ -14,6 +14,8 @@ class KeepAlive:
         self.msg_str = msg_str    # "Hello, World!"
 
         self.thread = th.Thread(target=self.hello)
+        self.time_ticks = 0.200
+        self.run_time_tot = 0 # total number of time ticks
         self.running = False
 
         self.rx_queue = deque()
@@ -38,7 +40,8 @@ class KeepAlive:
             print(f"{msg_rx}")
             self.rx_queue.append(msg_rx)
             self.msg_count_rx_curr = self.msg_count_rx_curr + 1
-            t.sleep(.200)
+            self.run_time_tot = self.run_time_tot + self.time_ticks
+            t.sleep(self.time_ticks)
 
     def get_rx_counts(self):
         """ get receive message counts"""
@@ -68,6 +71,18 @@ class KeepAlive:
         else:
              return False
     
+    def get_rx_msg_rate(self):
+        if round(self.run_time_tot) > 0:            
+            return round(self.msg_count_rx_curr/self.run_time_tot, 2)
+        else:
+            return 0
+
+    def get_tx_msg_rate(self):
+        if round(self.run_time_tot) > 0:            
+            return round(self.msg_count_tx_curr/self.run_time_tot, 2)
+        else:
+            return 0
+
     def start(self):
         print(f'Starting Keep Alive (Client) Thread!')
         self.running = True

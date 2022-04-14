@@ -34,13 +34,10 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
 
     def create_panel(self):
         
-        # panel = ttk.Frame(self, borderwidth=2, relief='groove') 
         panel = ttk.LabelFrame(self, text="STATUS") 
-    
         panel.rowconfigure(0, weight=1)
         panel.grid(column=0, row=0, sticky=tk.NSEW, padx=10, pady=10)
 
-        # ttk.Label(panel, text="STATUS:").grid(column=0, row=0, sticky='nesw', padx=5)
         ttk.Label(panel, text="RX").grid(column=1, row=0, sticky='nesw', padx=5)
         ttk.Label(panel, text="TX").grid(column=2, row=0, sticky='nesw', padx=5)
 
@@ -53,6 +50,14 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         self.tx_sync_var.set("--")
         self.tx_sync_lbl = ttk.Label(panel, background='blue', foreground='white', textvariable=self.tx_sync_var)
         self.tx_sync_lbl.grid(column=2, row=1, sticky='nesw', padx=5, pady=2)
+
+        panel.bind("<Enter>", self.on_enter) # tool-tip help
+        panel.bind("<Leave>", self.on_leave)
+        self.help_var = tk.StringVar()
+        self.help_var.set(" ")
+        help_lbl = ttk.Label(self, textvariable=self.help_var, foreground='dark orange')
+        help_lbl.configure( font=('Consolas', 10, 'italic'))
+        help_lbl.grid(column=0, row=99, sticky=tk.NSEW, padx=10, pady=10)
 
     def create_window_tabs(self):
         # create a notebook to have window tabs
@@ -90,7 +95,8 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
             self.exit_app()
 
     def check_status(self):
-        self.rx_sync_var.set(str(self.client.get_rx_counts())) 
+        self.rx_sync_var.set(str(self.client.get_rx_msg_rate())) 
+        self.tx_sync_var.set(str(self.client.get_tx_msg_rate())) 
 
         while self.client.rx_data_avail(): # will 'block' in loop until queue is 'drained'
             msg = self.client.get_rx_data() + '\n'
@@ -101,8 +107,6 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         else:
             self.rx_sync_lbl.config(background='red')
 
-        self.tx_sync_var.set(str(self.client.get_tx_counts())) 
-        
         self.after(1000, self.check_status) # poll for status changes every second
 
     def create_config_frame(self, tab):
@@ -125,6 +129,13 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
 
         self.sim_en_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(self.config, variable=self.sim_en_var, text='Simulate Target?').grid(column=0, row=2, sticky=tk.W)
+
+    # tool tip help methods
+    def on_enter(self, enter):
+        self.help_var.set("TIP: RX and TX are rates in messages/second. RX red is OOS, green is INSYNC; TX is always blue.")
+        
+    def on_leave(self, event):
+        self.help_var.set(" ")
 
     ############################################
     
