@@ -1,6 +1,7 @@
 '''
 Target Simulator - Simulates a target system (Server) that the Target Manager Client is 'talking' to.
 '''
+from lib2to3.pgen2.token import EQUAL
 import socket
 import time as t
 import threading as th
@@ -15,7 +16,8 @@ class TargetSimulator:
         self.thread = th.Thread(target=self.receiver)
         self.running = False
 
-        self.msg_count = 0        # Message counter
+        self.msg_count = 0          # Message counts
+        self.msg_count_previous = 0
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)    # IPv4 and UDP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow address/port reuse immediately 
@@ -25,6 +27,13 @@ class TargetSimulator:
 
     def get_receive_counts(self):
         return self.msg_count
+
+    def get_rx_sync(self):
+        if (self.running == True) and (self.msg_count > self.msg_count_previous):
+            self.msg_count_previous = self.msg_count
+            return True
+        else:
+             return False
 
     def receiver(self):  # this method is invoked as a thread 
         while self.running:
@@ -39,10 +48,10 @@ class TargetSimulator:
                 # self.sock.sendto(str(self.msg_count).encode(), (self.udp_ip, self.udp_port))
 
     def start(self):
-        print(f'Starting Target Simulator Thread!')
+        print(f'Starting Target Simulator (Server) Thread!')
         self.running = True
         self.thread.start()
 
     def stop(self):
-        print(f'Stopping Target Simulator Thread!')
+        print(f'Stopping Target Simulator (Server) Thread!')
         self.running = False

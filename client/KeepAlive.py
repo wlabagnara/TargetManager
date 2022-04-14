@@ -18,9 +18,9 @@ class KeepAlive:
 
         self.msg_count = 0        # Message counter
 
-        print (f"UDP target IP: {udp_ip}")
-        print (f"UDP target port: {udp_port}")
-        print (f"message: {msg_str}")
+        # print (f"UDP target IP: {udp_ip}")
+        # print (f"UDP target port: {udp_port}")
+        # print (f"message: {msg_str}")
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # IPv4 and UDP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow address/port reuse immediately 
 
