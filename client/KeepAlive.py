@@ -1,6 +1,6 @@
-'''
-UDP Client Keep Alive - The client interface used to 'ping' the target device (UDP server).
-'''
+"""
+    UDP Client Keep Alive - The client interface used to 'ping' the target device (UDP server).
+"""
 
 import socket
 import time as t
@@ -8,6 +8,7 @@ import threading as th
 from collections import deque
 
 class KeepAlive:
+    """ Keep alive class for implementation of the host (client-side) UDP/IP connection"""
     def __init__(self, udp_ip, udp_port, msg_str):
         self.udp_ip =  udp_ip     # UDP_IP = "localhost" (loopback IP address for testing)
         self.udp_port = udp_port  # UDP_PORT = 5005
@@ -30,7 +31,8 @@ class KeepAlive:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # IPv4 and UDP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow address/port reuse immediately 
 
-    def hello(self): # this method is invoked as a thread
+    def hello(self):
+        """ Method is invoked as the client-side thread. """
         while self.running: 
             self.sock.sendto(bytes(self.msg_str, 'utf-8'), (self.udp_ip, self.udp_port))
             self.msg_count_tx_curr = self.msg_count_tx_curr + 1
@@ -44,27 +46,28 @@ class KeepAlive:
             t.sleep(self.time_ticks)
 
     def get_rx_counts(self):
-        """ get receive message counts"""
+        """ Get the total number of messages received by the client."""
         return self.msg_count_rx_curr 
 
     def is_running(self):
+        """ Check if the thread is running."""
         return self.running
 
     def rx_data_avail(self):
-        """ thread is running and has data in it's receive queue"""
+        """ Check if thread is running and has data to process in it's receive queue"""
         return  (self.running and self.rx_queue)
 
     def get_rx_data(self):
-        """ get data from queue when available"""
+        """ Get data from queue when available"""
         if self.rx_data_avail():
             return  self.rx_queue.popleft()
 
     def get_tx_counts(self):
-        """ get transmit message counts"""
+        """ Get the total number of messages transmitted by the client."""
         return self.msg_count_tx_curr
 
     def get_rx_sync(self):
-        """ determines if the application (client) is actively receiving messages """    
+        """ Determines if the application (client) is actively receiving messages """    
         if (self.running == True) and (self.msg_count_rx_curr > self.msg_count_rx_prev):
             self.msg_count_rx_prev = self.msg_count_rx_curr
             return True
@@ -72,22 +75,26 @@ class KeepAlive:
              return False
     
     def get_rx_msg_rate(self):
+        """ Returns the recieve message rate as calculated by this class."""
         if round(self.run_time_tot) > 0:            
             return round(self.msg_count_rx_curr/self.run_time_tot, 2)
         else:
             return 0
 
     def get_tx_msg_rate(self):
+        """ Returns the transmission message rate as calculated by this class."""
         if round(self.run_time_tot) > 0:            
             return round(self.msg_count_tx_curr/self.run_time_tot, 2)
         else:
             return 0
 
     def start(self):
+        """ Gracefully starts the client-side thread."""
         print(f'Starting Keep Alive (Client) Thread!')
         self.running = True
         self.thread.start()
 
     def stop(self):
+        """ Gracefully stops the client-side thread."""
         print(f'Stopping Keep Alive (Client) Thread!')
         self.running = False

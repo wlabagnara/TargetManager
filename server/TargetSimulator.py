@@ -1,6 +1,6 @@
-'''
-Target Simulator - Simulates a target system (Server) that the Target Manager Client is 'talking' to.
-'''
+"""
+Target Simulator - Simulates a target system (Server) that the Target Manager Client is managing.
+"""
 from lib2to3.pgen2.token import EQUAL
 import socket
 import time as t
@@ -8,7 +8,7 @@ import threading as th
 
 
 class TargetSimulator:
-
+    """ Target simulator class for implementation of the target (server-side) UDP/IP connection"""
     def __init__(self, udp_ip, udp_port):
         self.udp_ip =  udp_ip     # UDP_IP = "localhost" (loopback IP address for testing)
         self.udp_port = udp_port  # UDP_PORT = 5005
@@ -27,13 +27,15 @@ class TargetSimulator:
         self.sock.bind((udp_ip, udp_port))
 
     def get_rx_counts(self):
+        """ Get the total number of messages received by the simulated target (server-side)"""
         return self.msg_count_rx_curr
 
     def get_tx_counts(self):
+        """ Get the total number of messages transmitted by the simulated target (server-side)."""
         return self.msg_count_tx_curr
 
     def get_rx_sync(self):
-        """ determines if the simulator (server) is actively receiving messages """
+        """ Determines if the target simulator is actively receiving messages."""
         if (self.running == True) and (self.msg_count_rx_curr > self.msg_count__rx_prev):
             self.msg_count_rx_prev = self.msg_count_rx_curr
             return True
@@ -41,6 +43,7 @@ class TargetSimulator:
              return False
 
     def receiver(self):  # this method is invoked as a thread 
+        """ Method is invoked as the server-side thread."""
         while self.running:
                 data, addr = self.sock.recvfrom(1024)
                 self.msg_count_rx_curr = self.msg_count_rx_curr + 1
@@ -49,16 +52,18 @@ class TargetSimulator:
                 self.sock.sendto(msg.encode(), addr)
                 self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
-                # test code for send only
+                # test code to remap localhost string text
                 # if self.udp_ip == "localhost": # make loopback address socket compliant
                 #     self.udp_ip = "127.0.0.1"
                 # self.sock.sendto(str(self.msg_count).encode(), (self.udp_ip, self.udp_port))
 
     def start(self):
+        """ Gracefully starts the server-side thread."""
         print(f'Starting Target Simulator (Server) Thread!')
         self.running = True
         self.thread.start()
 
     def stop(self):
+        """ Gracefully stops the server-side thread."""
         print(f'Stopping Target Simulator (Server) Thread!')
         self.running = False

@@ -8,7 +8,8 @@ from tkinter import messagebox as tkmb
 import pathlib as p
 
 
-class GUI(tk.Tk): # application main window derived from tkinter GUI class
+class GUI(tk.Tk): 
+    """ Application main GUI window derived from tkinter class."""
     def __init__(self, client, server):
         super().__init__()
         self.title('Target Manager')
@@ -34,7 +35,7 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         self.start_threads()
 
     def create_panel(self):
-        
+        """ Create a status panel to display indicators and such."""
         panel = ttk.LabelFrame(self, text="STATUS") 
         panel.rowconfigure(0, weight=1)
         panel.grid(column=0, row=0, sticky=tk.NSEW, padx=10, pady=10)
@@ -61,7 +62,7 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         help_lbl.grid(column=0, row=99, sticky=tk.NSEW, padx=10, pady=10)
 
     def create_window_tabs(self):
-        # create a notebook to have window tabs
+        """ Create a set of window tab views. """
         nb = ttk.Notebook(self)
         nb.grid(column=0, row=3, sticky=tk.N+tk.E+tk.W+tk.S, padx=5, pady=5)
         nb.enable_traversal() # can use arrow keys to switch tabs
@@ -73,6 +74,7 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         nb.add(self.frm2, text='Data  ', underline=0, padding=5)
 
     def create_data_view(self, tab):
+        """ Create a text window for displaying captured data and such. """
         self.body = ttk.Frame(tab)
         self.data = tk.Text(self.body, height=20)
         self.data.grid(column=0, row=1)
@@ -82,20 +84,24 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
 
     def start_threads(self):
+        """ Start the threads required for the main application."""
         self.check_status()
         self.client.start() # start server then client thread
         self.server.start()
 
     def exit_app(self):
+        """ Cleanly exit the main application."""
         self.client.stop() # stop threads
         self.server.stop()
         self.destroy() # quit GUI
 
     def on_closing(self):
+        """ Kindly close the main application window."""
         if tkmb.askokcancel("Are you sure?", "Do you really want to quit?") == True:
             self.exit_app()
 
     def check_status(self):
+        """ Poll the various status information for GUI presentation."""
         self.rx_sync_var.set(str(self.client.get_rx_msg_rate())) 
         self.tx_sync_var.set(str(self.client.get_tx_msg_rate())) 
 
@@ -111,6 +117,7 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         self.after(1000, self.check_status) # poll for status changes every second
 
     def create_config_frame(self, tab):
+        """ Create a view for the configuration items."""
         self.config = ttk.LabelFrame(tab, text="IP Configuration") 
         
         self.config.columnconfigure(0, weight=1)
@@ -131,47 +138,9 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         self.sim_en_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(self.config, variable=self.sim_en_var, text='Simulate Target?').grid(column=0, row=2, sticky=tk.W)
 
-    # tool tip help methods
+    """ Tooltip help methods. Displays tip when you hover over something."""
     def on_enter(self, enter):
         self.help_var.set("TIP: RX and TX are rates in messages/second. RX red is OOS, green is INSYNC; TX is always blue.")
         
     def on_leave(self, event):
         self.help_var.set(" ")
-
-    ############################################
-    
-    def create_header_frame(self, tab):
-        self.header = ttk.Frame(tab) 
-        # grid
-        self.header.columnconfigure(0, weight=1)
-        self.header.columnconfigure(1, weight=10)
-        self.header.columnconfigure(2, weight=1)
-        # label
-        self.label = ttk.Label(self.header, text='URL')
-        self.label.grid(column=0, row=0, sticky=tk.W)
-        # entry
-        self.url_var = tk.StringVar()
-        self.url_entry = ttk.Entry(self.header, textvariable=self.url_var, width=80)
-        self.url_entry.grid(column=1, row=0, sticky=tk.EW)
-        # download button
-        self.download_button = ttk.Button(self.header, text='Download')
-        # self.download_button['command'] = self.handle_download
-        self.download_button.grid(column=2, row=0, sticky=tk.E)
-        # attach header frame
-        self.header.grid(column=0, row=0, sticky=tk.NSEW, padx=10, pady=10)
-
-    def create_body_frame(self, tab):
-        self.body = ttk.Frame(tab)
-        self.html = tk.Text(self.body, height=20)
-        self.html.grid(column=0, row=1)
-        scrollbar = ttk.Scrollbar(self.body, orient='vertical', command=self.html.yview)
-        scrollbar.grid(column=1, row=1, sticky=tk.NS)
-        self.html['yscrollcommand'] = scrollbar.set
-        self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
-
-    def create_footer_frame(self, tab):
-        self.footer = ttk.Frame(tab)
-        self.footer.columnconfigure(0, weight=1)
-        self.exit_button = ttk.Button(self.footer, text='Exit', command=self.exit_app)
-        self.exit_button.grid(column=0, row=0, sticky=tk.E)
-        self.footer.grid(column=0, row=2, sticky=tk.NSEW, padx=10, pady=10)
