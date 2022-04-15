@@ -5,6 +5,7 @@
 import tkinter as tk
 from tkinter import PhotoImage, ttk
 from tkinter import messagebox as tkmb
+import pathlib as p
 
 
 class GUI(tk.Tk): # application main window derived from tkinter GUI class
@@ -12,9 +13,9 @@ class GUI(tk.Tk): # application main window derived from tkinter GUI class
         super().__init__()
         self.title('Target Manager')
         self.geometry('800x600')
-        # self.resizable(0,0) # uncomment to disable resizing of app window
-        pl = PhotoImage(file='C:/Projects/TargetManager/view/main.png') # convert to relative path!
-        self.iconphoto(False, pl)
+        self.resizable(0,0) # uncomment to disable resizing of app window
+        icon_image = PhotoImage(file=str(p.Path(__file__).parent.absolute()) + '\\main.png') # convert to relative path!
+        self.iconphoto(False, icon_image)
 
         style = ttk.Style()
         style.theme_use('xpnative') # default, xpnative, winnative, vista, classic, clam, alt
