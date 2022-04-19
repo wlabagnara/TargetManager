@@ -1,6 +1,6 @@
 
 """
-Target Manager Application
+    Target Manager Application
 """
 
 import view.MainView as mv

@@ -28,6 +28,7 @@ class GUI(tk.Tk):
         self.create_window_tabs()
         self.create_config_frame(self.frm1)
         self.create_data_view(self.frm2)
+        self.create_graph_view(self.frm3)
 
         # initialize client/server objects and start their threads
         self.client = client
@@ -72,6 +73,9 @@ class GUI(tk.Tk):
         # create second tabs frame
         self.frm2 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.frm2, text='Data  ', underline=0, padding=5)
+        # create third tabs frame
+        self.frm3 = ttk.Frame(nb) # use this frame to put objects under this tab
+        nb.add(self.frm3, text='Graph  ', underline=0, padding=5)
 
     def create_data_view(self, tab):
         """ Create a text window for displaying captured data and such. """
@@ -82,6 +86,27 @@ class GUI(tk.Tk):
         scrollbar.grid(column=1, row=1, sticky=tk.NS)
         self.data['yscrollcommand'] = scrollbar.set
         self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
+
+    def create_graph_view(self, tab):
+        """ Create a graph plot for diplaying data. """
+
+        import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from pandas import DataFrame
+
+        data2 = {'Sample': [1,2,3,4,5,6,7,8,9,10],
+         'Voltage': [9.8,12,8,7.2,6.9,7,6.5,6.2,5.5,6.3]
+        }  
+        df2 = DataFrame(data2,columns=['Sample','Voltage'])
+        figure2 = plt.Figure(figsize=(5,4), dpi=100)
+        ax2 = figure2.add_subplot(111)
+
+        line2 = FigureCanvasTkAgg(figure2, tab)                                     
+        line2.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
+
+        df2 = df2[['Sample','Voltage']].groupby('Sample').sum()
+        df2.plot(kind='line', legend=True, ax=ax2, color='r',marker='o', fontsize=10)
+        ax2.set_title('Sample Vs. Voltage Level')
 
     def start_threads(self):
         """ Start the threads required for the main application."""
@@ -144,3 +169,22 @@ class GUI(tk.Tk):
         
     def on_leave(self, event):
         self.help_var.set(" ")
+
+    """ Utility methods """
+
+    def is_valid_IP_addr(self, sample_str):
+        ''' Returns True if given string is a
+            valid IP Address, else returns False'''
+
+        import re
+        result = True
+        match_obj = re.search( r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$", sample_str)
+        if  match_obj is None:
+            result = False
+        else:
+            for value in match_obj.groups():
+                if int(value) > 255:
+                    result = False
+                    break
+        return result
+

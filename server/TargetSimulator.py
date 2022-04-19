@@ -1,5 +1,5 @@
 """
-Target Simulator - Simulates a target system (Server) that the Target Manager Client is managing.
+    Target Simulator - Simulates a target system (Server) that the Target Manager Client is managing.
 """
 from lib2to3.pgen2.token import EQUAL
 import socket
