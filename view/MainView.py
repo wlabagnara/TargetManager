@@ -7,6 +7,25 @@ from tkinter import PhotoImage, ttk
 from tkinter import messagebox as tkmb
 import pathlib as p
 
+from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+
+# from pandas import DataFrame
+import pandas as pd
+
+# plt.style.use('fivethirtyeight') # makes plots nicer
+
+def create_plot_view(i):
+    """ Create a plot of real-time data """
+    data = pd.read_csv('sim_data.csv')
+    x = data['x_value']
+    y1 = data['total_1']
+    y2 = data['total_2']    
+    plt.cla() 
+    plt.plot(x, y1, label='Channel 1')
+    # plt.plot(x, y2, label='Channel 2')
+    # plt.legend(loc='upper left')  
 
 class GUI(tk.Tk): 
     """ Application main GUI window derived from tkinter class."""
@@ -34,6 +53,7 @@ class GUI(tk.Tk):
         self.client = client
         self.server = server
         self.start_threads()
+
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -76,6 +96,9 @@ class GUI(tk.Tk):
         # create third tabs frame
         self.frm3 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.frm3, text='Graph  ', underline=0, padding=5)
+        # create fourth tabs frame
+        self.frm4 = ttk.Frame(nb) # use this frame to put objects under this tab
+        nb.add(self.frm4, text='Live Data Plots  ', underline=0, padding=5)
 
     def create_data_view(self, tab):
         """ Create a text window for displaying captured data and such. """
@@ -90,23 +113,29 @@ class GUI(tk.Tk):
     def create_graph_view(self, tab):
         """ Create a graph plot for diplaying data. """
 
-        import matplotlib.pyplot as plt
-        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-        from pandas import DataFrame
-
         data2 = {'Sample': [1,2,3,4,5,6,7,8,9,10],
          'Voltage': [9.8,12,8,7.2,6.9,7,6.5,6.2,5.5,6.3]
         }  
-        df2 = DataFrame(data2,columns=['Sample','Voltage'])
+        df2 = pd.DataFrame(data2,columns=['Sample','Voltage'])
         figure2 = plt.Figure(figsize=(5,4), dpi=100)
         ax2 = figure2.add_subplot(111)
 
         line2 = FigureCanvasTkAgg(figure2, tab)                                     
-        line2.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
+        line2.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
 
         df2 = df2[['Sample','Voltage']].groupby('Sample').sum()
         df2.plot(kind='line', legend=True, ax=ax2, color='r',marker='o', fontsize=10)
         ax2.set_title('Sample Vs. Voltage Level')
+
+        toobar = NavigationToolbar2Tk(line2, tab, pack_toolbar=False)
+        toobar.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
+
+
+
+    def launch_plot_view(self):
+        ani = FuncAnimation(plt.gcf(), create_plot_view, interval=1000)
+        plt.tight_layout()
+        plt.show()
 
     def start_threads(self):
         """ Start the threads required for the main application."""

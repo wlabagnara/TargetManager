@@ -14,7 +14,7 @@ if __name__ == "__main__":
     loc_client = ka.KeepAlive("localhost", 5005, "Hello Worldlings!")
     
     app = mv.GUI(loc_client, sim_target) 
-
+    app.launch_plot_view()
     app.mainloop()
 
     
