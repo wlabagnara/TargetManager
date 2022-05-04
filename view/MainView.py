@@ -2,13 +2,14 @@
     Main application view (GUI)
 """
 
+from cProfile import label
 import tkinter as tk
 from tkinter import PhotoImage, ttk
 from tkinter import messagebox as tkmb
 import pathlib as p
 
 from matplotlib import pyplot as plt
-from matplotlib.animation import FuncAnimation
+import matplotlib.animation as ani
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 # from pandas import DataFrame
@@ -16,24 +17,13 @@ import pandas as pd
 
 # plt.style.use('fivethirtyeight') # makes plots nicer
 
-def create_plot_view(i):
-    """ Create a plot of real-time data """
-    data = pd.read_csv('sim_data.csv')
-    x = data['x_value']
-    y1 = data['total_1']
-    y2 = data['total_2']    
-    plt.cla() 
-    plt.plot(x, y1, label='Channel 1')
-    # plt.plot(x, y2, label='Channel 2')
-    # plt.legend(loc='upper left')  
-
 class GUI(tk.Tk): 
     """ Application main GUI window derived from tkinter class."""
     def __init__(self, client, server):
         super().__init__()
         self.title('Target Manager')
-        self.geometry('800x600')
-        self.resizable(0,0) # uncomment to disable resizing of app window
+        self.geometry('1000x768')
+        # self.resizable(0,0) # uncomment to disable resizing of app window
         icon_image = PhotoImage(file=str(p.Path(__file__).parent.absolute()) + '\\main.png') # convert to relative path!
         self.iconphoto(False, icon_image)
 
@@ -47,13 +37,16 @@ class GUI(tk.Tk):
         self.create_window_tabs()
         self.create_config_frame(self.frm1)
         self.create_data_view(self.frm2)
-        self.create_graph_view(self.frm3)
 
         # initialize client/server objects and start their threads
         self.client = client
         self.server = server
         self.start_threads()
 
+        # plots in frame gui
+        self.fig = plt.Figure()
+        self.ax = self.fig.add_subplot(111)
+        self.animate() # update plots every tick
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -110,32 +103,22 @@ class GUI(tk.Tk):
         self.data['yscrollcommand'] = scrollbar.set
         self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
 
-    def create_graph_view(self, tab):
-        """ Create a graph plot for diplaying data. """
+    def update(self, i, tab1 ):
+        """ Create a plot of real-time data """
+        data = pd.read_csv('sim_data.csv')
+        x = data['x_value']
+        y1 = data['total_1']
+        self.ax.cla() 
+        self.ax.plot(x, y1, label='Channel 1')
+        self.ax.grid()
+        self.ax.legend(loc='upper left')
+        self.toobar = NavigationToolbar2Tk(self.line2, tab1, pack_toolbar=False)
+        self.toobar.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)    
 
-        data2 = {'Sample': [1,2,3,4,5,6,7,8,9,10],
-         'Voltage': [9.8,12,8,7.2,6.9,7,6.5,6.2,5.5,6.3]
-        }  
-        df2 = pd.DataFrame(data2,columns=['Sample','Voltage'])
-        figure2 = plt.Figure(figsize=(5,4), dpi=100)
-        ax2 = figure2.add_subplot(111)
-
-        line2 = FigureCanvasTkAgg(figure2, tab)                                     
-        line2.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-
-        df2 = df2[['Sample','Voltage']].groupby('Sample').sum()
-        df2.plot(kind='line', legend=True, ax=ax2, color='r',marker='o', fontsize=10)
-        ax2.set_title('Sample Vs. Voltage Level')
-
-        toobar = NavigationToolbar2Tk(line2, tab, pack_toolbar=False)
-        toobar.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
-
-
-
-    def launch_plot_view(self):
-        ani = FuncAnimation(plt.gcf(), create_plot_view, interval=1000)
-        plt.tight_layout()
-        plt.show()
+    def animate(self):
+        self.line2 = FigureCanvasTkAgg(self.fig, self.frm4)                                     
+        self.line2.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.ani = ani.FuncAnimation(self.fig, self.update, fargs=(self.frm4, ), interval=1000)
 
     def start_threads(self):
         """ Start the threads required for the main application."""
