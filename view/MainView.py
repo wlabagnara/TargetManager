@@ -2,20 +2,15 @@
     Main application view (GUI)
 """
 
-from cProfile import label
 import tkinter as tk
 from tkinter import PhotoImage, ttk
 from tkinter import messagebox as tkmb
 import pathlib as p
 
 from matplotlib import pyplot as plt
-import matplotlib.animation as ani
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
-# from pandas import DataFrame
-import pandas as pd
-
-# plt.style.use('fivethirtyeight') # makes plots nicer
+import drawplots.DrawPlots as dp
+import utils.Utils as utils
 
 class GUI(tk.Tk): 
     """ Application main GUI window derived from tkinter class."""
@@ -35,8 +30,8 @@ class GUI(tk.Tk):
 
         self.create_panel()
         self.create_window_tabs()
-        self.create_config_frame(self.frm1)
-        self.create_data_view(self.frm2)
+        self.create_config_frame(self.tab1)
+        self.create_data_view(self.tab2)
 
         # initialize client/server objects and start their threads
         self.client = client
@@ -45,8 +40,7 @@ class GUI(tk.Tk):
 
         # plots in frame gui
         self.fig = plt.Figure()
-        self.ax = self.fig.add_subplot(111)
-        self.animate() # update plots every tick
+        plot1 = dp.DrawPlots(self.fig, self.tab3)
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -81,17 +75,17 @@ class GUI(tk.Tk):
         nb.grid(column=0, row=3, sticky=tk.N+tk.E+tk.W+tk.S, padx=5, pady=5)
         nb.enable_traversal() # can use arrow keys to switch tabs
         # create first tabs frame 
-        self.frm1 = ttk.Frame(nb) # use this frame to put objects under this tab
-        nb.add(self.frm1, text='Configuraton ', underline=0, padding=5)
+        self.tab1 = ttk.Frame(nb) # use this frame to put objects under this tab
+        nb.add(self.tab1, text='Configuraton ', underline=0, padding=5)
         # create second tabs frame
-        self.frm2 = ttk.Frame(nb) # use this frame to put objects under this tab
-        nb.add(self.frm2, text='Data  ', underline=0, padding=5)
+        self.tab2 = ttk.Frame(nb) # use this frame to put objects under this tab
+        nb.add(self.tab2, text='Data  ', underline=0, padding=5)
         # create third tabs frame
-        self.frm3 = ttk.Frame(nb) # use this frame to put objects under this tab
-        nb.add(self.frm3, text='Graph  ', underline=0, padding=5)
+        self.tab3 = ttk.Frame(nb) # use this frame to put objects under this tab
+        nb.add(self.tab3, text='Plots  ', underline=0, padding=5)
         # create fourth tabs frame
-        self.frm4 = ttk.Frame(nb) # use this frame to put objects under this tab
-        nb.add(self.frm4, text='Live Data Plots  ', underline=0, padding=5)
+        self.tab4 = ttk.Frame(nb) # use this frame to put objects under this tab
+        nb.add(self.tab4, text='More  ', underline=0, padding=5)
 
     def create_data_view(self, tab):
         """ Create a text window for displaying captured data and such. """
@@ -102,23 +96,6 @@ class GUI(tk.Tk):
         scrollbar.grid(column=1, row=1, sticky=tk.NS)
         self.data['yscrollcommand'] = scrollbar.set
         self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
-
-    def update(self, i, tab1 ):
-        """ Create a plot of real-time data """
-        data = pd.read_csv('sim_data.csv')
-        x = data['x_value']
-        y1 = data['total_1']
-        self.ax.cla() 
-        self.ax.plot(x, y1, label='Channel 1')
-        self.ax.grid()
-        self.ax.legend(loc='upper left')
-        self.toobar = NavigationToolbar2Tk(self.line2, tab1, pack_toolbar=False)
-        self.toobar.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)    
-
-    def animate(self):
-        self.line2 = FigureCanvasTkAgg(self.fig, self.frm4)                                     
-        self.line2.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.ani = ani.FuncAnimation(self.fig, self.update, fargs=(self.frm4, ), interval=1000)
 
     def start_threads(self):
         """ Start the threads required for the main application."""
@@ -131,6 +108,7 @@ class GUI(tk.Tk):
         self.client.stop() # stop threads
         self.server.stop()
         self.destroy() # quit GUI
+        exit(0)
 
     def on_closing(self):
         """ Kindly close the main application window."""
@@ -181,22 +159,4 @@ class GUI(tk.Tk):
         
     def on_leave(self, event):
         self.help_var.set(" ")
-
-    """ Utility methods """
-
-    def is_valid_IP_addr(self, sample_str):
-        ''' Returns True if given string is a
-            valid IP Address, else returns False'''
-
-        import re
-        result = True
-        match_obj = re.search( r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$", sample_str)
-        if  match_obj is None:
-            result = False
-        else:
-            for value in match_obj.groups():
-                if int(value) > 255:
-                    result = False
-                    break
-        return result
 
