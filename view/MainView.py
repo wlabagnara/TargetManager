@@ -12,9 +12,14 @@ from matplotlib import pyplot as plt
 import drawplots.DrawPlots as dp
 import utils.Utils as utils
 
+import client.KeepAlive as ka
+import server.TargetSimulator as ts
+
+import pandas as pd
+
 class GUI(tk.Tk): 
     """ Application main GUI window derived from tkinter class."""
-    def __init__(self, client, server):
+    def __init__(self):
         super().__init__()
         self.title('Target Manager')
         self.geometry('1000x768')
@@ -28,19 +33,21 @@ class GUI(tk.Tk):
         
         self.protocol("WM_DELETE_WINDOW", self.on_closing) # handle window's close icon 'X'
 
+        # initialize client/server objects and start their threads
+        self.host_ip_var = tk.StringVar()    
+        self.host_udp_var = tk.StringVar()    
+        self.target_ip_var = tk.StringVar()    
+        self.target_udp_var = tk.StringVar()    
+
         self.create_panel()
         self.create_window_tabs()
-        self.create_config_frame(self.tab1)
-        self.create_data_view(self.tab2)
-
-        # initialize client/server objects and start their threads
-        self.client = client
-        self.server = server
-        self.start_threads()
 
         # plots in GUI frame tabs
         self.fig = plt.Figure()
         plot1 = dp.DrawPlots(self.fig, self.tab3)
+
+        self.create_config_frame(self.tab1)
+        self.create_data_view(self.tab2)
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -87,27 +94,63 @@ class GUI(tk.Tk):
         self.tab4 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.tab4, text='More  ', underline=0, padding=5)
 
+    def save_network_config(self):
+        " save the network configuration parameters"
+        df = pd.DataFrame({
+            'Host':[self.host_ip_var.get(), self.host_udp_var.get()],
+            'Target':[self.target_ip_var.get(), self.target_udp_var.get()]
+        })
+
+        df.to_json("network_config.json")
+
     def create_config_frame(self, tab):
         """ Create a view for the configuration items."""
-        self.config = ttk.LabelFrame(tab, text="IP Configuration") 
+
+        self.target_ip_var.set("localhost")
+        self.target_udp_var.set("5005")
+        self.host_ip_var.set("localhost")
+        self.host_udp_var.set("5005")
+
+        df = pd.DataFrame({
+            'Host':[self.host_ip_var.get(), self.host_udp_var.get()],
+            'Target':[self.target_ip_var.get(), self.target_udp_var.get()]
+        })
+
+        df.to_json("network_config.json")
+        read_f = pd.read_json("network_config.json")
+
+        host_ip = read_f['Host'][0]
+        host_udp = read_f['Host'][1]
+        target_ip = read_f['Target'][0]
+        target_udp = read_f['Target'][1]
+        print(f' host: {host_ip} {host_udp} target: {target_ip} {target_udp}')
+
+        self.server = ts.TargetSimulator(self.target_ip_var.get(), int(self.target_udp_var.get())) 
+        self.client = ka.KeepAlive(self.host_ip_var.get(), int(self.host_udp_var.get()), "Hello Worldlings!")    
+        self.start_threads()
+    
+        self.config = ttk.LabelFrame(tab, text="Network Configuration") 
         
         self.config.columnconfigure(0, weight=1)
         self.config.columnconfigure(1, weight=10)
         self.config.columnconfigure(2, weight=1)
         self.config.grid(column=0, row=0, sticky=tk.NSEW, padx=10, pady=10)
 
+        frm_width = 80
+
         ttk.Label(self.config, text='Host IP Address:  ').grid(column=0, row=0, sticky=tk.W)
-        self.host_ip_var = tk.StringVar()    
-        self.host_ip_var.set("localhost")
-        ttk.Entry(self.config, textvariable=self.host_ip_var, width=80).grid(column=1, row=0, sticky=tk.W)
+        ttk.Entry(self.config, textvariable=self.host_ip_var, width=frm_width).grid(column=1, row=0, sticky=tk.W)
 
         ttk.Label(self.config, text='Host UDP Port:  ').grid(column=0, row=1, sticky=tk.W)
-        self.host_udp_var = tk.StringVar()    
-        self.host_udp_var.set("5005")
-        ttk.Entry(self.config, textvariable=self.host_udp_var, width=80).grid(column=1, row=1, sticky=tk.W)
+        ttk.Entry(self.config, textvariable=self.host_udp_var, width=frm_width).grid(column=1, row=1, sticky=tk.W)
 
-        self.sim_en_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(self.config, variable=self.sim_en_var, text='Simulate Target?').grid(column=0, row=2, sticky=tk.W)
+        ttk.Label(self.config, text='Target IP Address:  ').grid(column=0, row=2, sticky=tk.W)
+        ttk.Entry(self.config, textvariable=self.target_ip_var, width=frm_width).grid(column=1, row=2, sticky=tk.W)
+
+        ttk.Label(self.config, text='Target UDP Port:  ').grid(column=0, row=3, sticky=tk.W)
+        ttk.Entry(self.config, textvariable=self.target_udp_var, width=frm_width).grid(column=1, row=3, sticky=tk.W)
+
+        ttk.Button(self.config, text='Save Configuration', command=self.save_network_config).grid(column=0, row=4, sticky='nesw')
 
     def create_data_view(self, tab):
         """ Create a text window for displaying captured data and such. """
