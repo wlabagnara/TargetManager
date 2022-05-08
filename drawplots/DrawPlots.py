@@ -1,3 +1,9 @@
+"""
+    Draw plots for display on GUI
+
+    Constructed with figure and display tab given by main GUI
+"""
+
 from matplotlib import pyplot as plt
 import matplotlib.animation as ani
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -7,6 +13,7 @@ import tkinter as tk
 import pandas as pd
 
 class DrawPlots(tk.Tk): 
+    """ Class used to animate plots on GUI from file data """
     def __init__(self, fig, tab):
         self.fig = fig
         self.ax = self.fig.add_subplot(111)
@@ -30,6 +37,7 @@ class DrawPlots(tk.Tk):
         self.toobar.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)    
 
     def animate(self):
+        """ Animate data on display based on update function """
         self.line2 = FigureCanvasTkAgg(self.fig, self.tab)                                     
         self.line2.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
         self.ani = ani.FuncAnimation(self.fig, self.update, interval=1000)

@@ -100,7 +100,7 @@ class TargetSimulator:
                 self.csv_writer.writerow(info)
                 # print(self.x_value, self.total_1, self.total_2)
                 self.x_value += 1
-                self.total_1 = self.total_1 + random.randint(-6, 8)
-                self.total_2 = self.total_2 + random.randint(-5, 6)
+                self.total_1 = self.total_1 + random.randint(-10, 8)
+                self.total_2 = self.total_2 + random.randint(-8, 10)
         
 

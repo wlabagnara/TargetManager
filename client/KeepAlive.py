@@ -15,7 +15,7 @@ class KeepAlive:
         self.msg_str = msg_str    # "Hello, World!"
 
         self.thread = th.Thread(target=self.hello)
-        self.time_ticks = 1
+        self.time_ticks = 0.25 # seconds per tick
         self.run_time_tot = 0 # total number of time ticks
         self.running = False
 

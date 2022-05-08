@@ -38,7 +38,7 @@ class GUI(tk.Tk):
         self.server = server
         self.start_threads()
 
-        # plots in frame gui
+        # plots in GUI frame tabs
         self.fig = plt.Figure()
         plot1 = dp.DrawPlots(self.fig, self.tab3)
 
@@ -87,50 +87,6 @@ class GUI(tk.Tk):
         self.tab4 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.tab4, text='More  ', underline=0, padding=5)
 
-    def create_data_view(self, tab):
-        """ Create a text window for displaying captured data and such. """
-        self.body = ttk.Frame(tab)
-        self.data = tk.Text(self.body, height=20)
-        self.data.grid(column=0, row=1)
-        scrollbar = ttk.Scrollbar(self.body, orient='vertical', command=self.data.yview)
-        scrollbar.grid(column=1, row=1, sticky=tk.NS)
-        self.data['yscrollcommand'] = scrollbar.set
-        self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
-
-    def start_threads(self):
-        """ Start the threads required for the main application."""
-        self.check_status()
-        self.client.start() # start server then client thread
-        self.server.start()
-
-    def exit_app(self):
-        """ Cleanly exit the main application."""
-        self.client.stop() # stop threads
-        self.server.stop()
-        self.destroy() # quit GUI
-        exit(0)
-
-    def on_closing(self):
-        """ Kindly close the main application window."""
-        if tkmb.askokcancel("Are you sure?", "Do you really want to quit?") == True:
-            self.exit_app()
-
-    def check_status(self):
-        """ Poll the various status information for GUI presentation."""
-        self.rx_sync_var.set(str(self.client.get_rx_msg_rate())) 
-        self.tx_sync_var.set(str(self.client.get_tx_msg_rate())) 
-
-        while self.client.rx_data_avail(): # will 'block' in loop until queue is 'drained'
-            msg = self.client.get_rx_data() + '\n'
-            self.data.insert('1.0', msg)
-
-        if self.client.get_rx_sync() == True:
-            self.rx_sync_lbl.config(background='green')
-        else:
-            self.rx_sync_lbl.config(background='red')
-
-        self.after(1000, self.check_status) # poll for status changes every second
-
     def create_config_frame(self, tab):
         """ Create a view for the configuration items."""
         self.config = ttk.LabelFrame(tab, text="IP Configuration") 
@@ -152,6 +108,50 @@ class GUI(tk.Tk):
 
         self.sim_en_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(self.config, variable=self.sim_en_var, text='Simulate Target?').grid(column=0, row=2, sticky=tk.W)
+
+    def create_data_view(self, tab):
+        """ Create a text window for displaying captured data and such. """
+        self.body = ttk.Frame(tab)
+        self.data = tk.Text(self.body, height=20)
+        self.data.grid(column=0, row=1)
+        scrollbar = ttk.Scrollbar(self.body, orient='vertical', command=self.data.yview)
+        scrollbar.grid(column=1, row=1, sticky=tk.NS)
+        self.data['yscrollcommand'] = scrollbar.set
+        self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
+
+    def check_status(self):
+        """ Poll the various status information for GUI presentation."""
+        self.rx_sync_var.set(str(self.client.get_rx_msg_rate())) 
+        self.tx_sync_var.set(str(self.client.get_tx_msg_rate())) 
+
+        while self.client.rx_data_avail(): # will 'block' in loop until queue is 'drained'
+            msg = self.client.get_rx_data() + '\n'
+            self.data.insert('1.0', msg)
+
+        if self.client.get_rx_sync() == True:
+            self.rx_sync_lbl.config(background='green')
+        else:
+            self.rx_sync_lbl.config(background='red')
+
+        self.after(1000, self.check_status) # poll for status changes every second
+
+    def start_threads(self):
+        """ Start the threads required for the main application."""
+        self.check_status()
+        self.client.start() # start server then client thread
+        self.server.start()
+
+    def exit_app(self):
+        """ Cleanly exit the main application."""
+        self.client.stop() # stop threads
+        self.server.stop()
+        self.destroy() # quit GUI
+        exit(0)
+
+    def on_closing(self):
+        """ Kindly close the main application window."""
+        if tkmb.askokcancel("Are you sure?", "Do you really want to quit?") == True:
+            self.exit_app()
 
     """ Tooltip help methods. Displays tip when you hover over something."""
     def on_enter(self, enter):
