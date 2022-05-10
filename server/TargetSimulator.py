@@ -2,6 +2,7 @@
     Target Simulator - Simulates a target system (Server) that the Target Manager Client is managing.
 """
 # from lib2to3.pgen2.token import EQUAL
+from bdb import Breakpoint
 import socket
 import time as t
 import threading as th
@@ -9,6 +10,7 @@ import threading as th
 # datagen simulator
 import csv
 import random
+from warnings import catch_warnings
 
 
 class TargetSimulator:
@@ -27,11 +29,15 @@ class TargetSimulator:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)    # IPv4 and UDP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow address/port reuse immediately 
         # self.sock.setblocking(0)   # play with receiver blocking enable/disable
-        # self.sock.settimeout(0.3)                       
-        self.sock.bind((udp_ip, udp_port))
+        # self.sock.settimeout(0.3)
 
-        # datagen simulate init
-        self.datagen_init()
+        try:                       
+            self.sock.bind((udp_ip, udp_port))
+            # datagen simulate init
+            self.datagen_init()
+        except:
+            print(f"Exception: cannot establish target socket!")
+
 
     def get_rx_counts(self):
         """ Get the total number of messages received by the simulated target (server-side)"""
@@ -52,6 +58,7 @@ class TargetSimulator:
     def receiver(self):  # this method is invoked as a thread 
         """ Method is invoked as the server-side thread."""
         while self.running:
+            try:
                 data, addr = self.sock.recvfrom(1024)
                 self.msg_count_rx_curr = self.msg_count_rx_curr + 1
                 # print (f"Server: message {self.msg_count_rx_curr} received from client")
@@ -66,6 +73,10 @@ class TargetSimulator:
                 # if self.udp_ip == "localhost": # make loopback address socket compliant
                 #     self.udp_ip = "127.0.0.1"
                 # self.sock.sendto(str(self.msg_count).encode(), (self.udp_ip, self.udp_port))
+            except:
+                print(f"Bad receive operation - need to stop!")
+                self.stop()
+                break
 
     def start(self):
         """ Gracefully starts the server-side thread."""
