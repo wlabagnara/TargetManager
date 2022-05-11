@@ -5,17 +5,15 @@
 import tkinter as tk
 from tkinter import PhotoImage, ttk
 from tkinter import messagebox as tkmb
-import pathlib as p
 
 from matplotlib import pyplot as plt
-
 import drawplots.DrawPlots as dp
-import utils.Utils as utils
 
+import netconfig.NetConfig as net
 import client.KeepAlive as ka
 import server.TargetSimulator as ts
 
-import pandas as pd
+import pathlib as p
 
 class GUI(tk.Tk): 
     """ Application main GUI window derived from tkinter class."""
@@ -48,8 +46,6 @@ class GUI(tk.Tk):
 
         self.create_config_frame(self.tab1)
         self.create_data_view(self.tab2)
-
-
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -96,56 +92,17 @@ class GUI(tk.Tk):
         self.tab4 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.tab4, text='More  ', underline=0, padding=5)
 
-    def set_default_network_config(self):
-        self.target_ip_var.set("localhost")
-        self.target_udp_var.set("5005")
-        self.host_ip_var.set("localhost")
-        self.host_udp_var.set("5005")
-
-        df = pd.DataFrame({
-            'Host':[self.host_ip_var.get(), self.host_udp_var.get()],
-            'Target':[self.target_ip_var.get(), self.target_udp_var.get()]
-        })
-
-        df.to_json("network_config.json")
-        read_f = pd.read_json("network_config.json")
-        return read_f
-
-    def save_network_config(self):
-        """ Save the network configuration to a file"""
-        df = pd.DataFrame({
-            'Host':[self.host_ip_var.get(), self.host_udp_var.get()],
-            'Target':[self.target_ip_var.get(), self.target_udp_var.get()]
-        })
-
-        df.to_json("network_config.json")
-        print(f'Saved network config file host: {self.host_ip_var.get()} {self.host_udp_var.get()} target: {self.target_ip_var.get()} {self.target_udp_var.get()}')
-
-    def read_network_config(self):
-        """ Read the network configuration from a file """
-        
-        try:
-            read_f = pd.read_json("network_config.json")
-        except:
-            print(f"Network configuration does not exist, so create default settings file.")
-            read_f = self.set_default_network_config()
-
-        host_ip = read_f['Host'][0]
-        host_udp = read_f['Host'][1]
-        target_ip = read_f['Target'][0]
-        target_udp = read_f['Target'][1]
-        print(f'Read network config file -- host: {host_ip} {host_udp} target: {target_ip} {target_udp}')
-        return (host_ip, host_udp, target_ip, target_udp)
-
     def create_config_frame(self, tab):
         """ Create a view for the configuration items."""
-
-        nc = self.read_network_config()
         
-        self.host_ip_var.set(nc[0])
-        self.host_udp_var.set(nc[1])
-        self.target_ip_var.set(nc[2])
-        self.target_udp_var.set(nc[3])
+        self.nc = net.NetConfig(self.host_ip_var, self.host_udp_var,
+            self.target_ip_var, self.target_udp_var)
+        udp_ip = self.nc.read_network_config()
+
+        self.host_ip_var.set(udp_ip[0])
+        self.host_udp_var.set(udp_ip[1])
+        self.target_ip_var.set(udp_ip[2])
+        self.target_udp_var.set(udp_ip[3])
 
         self.server = ts.TargetSimulator(self.target_ip_var.get(), int(self.target_udp_var.get())) 
         self.client = ka.KeepAlive(self.host_ip_var.get(), int(self.host_udp_var.get()), "Hello Worldlings!")    
@@ -172,7 +129,7 @@ class GUI(tk.Tk):
         ttk.Label(self.config, text='Target UDP Port:  ').grid(column=0, row=3, sticky=tk.W)
         ttk.Entry(self.config, textvariable=self.target_udp_var, width=frm_width).grid(column=1, row=3, sticky=tk.W)
 
-        ttk.Button(self.config, text='Save Configuration', command=self.save_network_config).grid(column=0, row=4, sticky='nesw')
+        ttk.Button(self.config, text='Save Configuration', command=self.nc.save_network_config).grid(column=0, row=4, sticky='nesw')
 
     def create_data_view(self, tab):
         """ Create a text window for displaying captured data and such. """
