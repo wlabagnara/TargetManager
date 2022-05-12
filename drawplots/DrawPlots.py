@@ -4,7 +4,7 @@
     Constructed with figure and display tab given by main GUI
 """
 
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import matplotlib.animation as ani
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
@@ -15,8 +15,16 @@ import pandas as pd
 class DrawPlots(tk.Tk): 
     """ Class used to animate plots on GUI from file data """
     def __init__(self, fig, tab):
+        """ Works fine from command line, BUT when
+            Running in VS CODE from debug...
+              UserWarning: Animation was deleted without rendering anything. This is most likely not intended. 
+              To prevent deletion, assign the Animation to a variable, e.g. `anim`, that exists until you have 
+              outputted the Animation using `plt.show()` or `anim.save()`.
+            SOLUTION: when instantiating w/i a class, do so as:
+             "self.<whatever> = dp.DrawPlots(<figref>, <tabref>)"
+        """    
         self.fig = fig
-        self.ax = self.fig.add_subplot(111)
+        self.ax = fig.add_subplot(111)
         self.tab = tab
         self.animate() # update plots every tick
 
@@ -26,9 +34,6 @@ class DrawPlots(tk.Tk):
         x = data['x_value']
         y1 = data['total_1']
         self.ax.cla() 
-        ## plt.style.use('fivethirtyeight') # makes plots nicer
-        ## plt.style.use('seaborn')
-        ## plt.style.use('ggplot')
 
         self.ax.plot(x, y1, label='Channel 1')
         self.ax.grid()
@@ -38,6 +43,7 @@ class DrawPlots(tk.Tk):
 
     def animate(self):
         """ Animate data on display based on update function """
+
         self.line2 = FigureCanvasTkAgg(self.fig, self.tab)                                     
         self.line2.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.ani = ani.FuncAnimation(self.fig, self.update, interval=1000)
+        self.anim = ani.FuncAnimation(self.fig, self.update, interval=1000)

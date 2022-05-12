@@ -31,21 +31,24 @@ class GUI(tk.Tk):
         
         self.protocol("WM_DELETE_WINDOW", self.on_closing) # handle window's close icon 'X'
 
-        # initialize client/server objects and start their threads
+        # initialize display variables
+        self.fig = plt.Figure()
         self.host_ip_var = tk.StringVar()    
         self.host_udp_var = tk.StringVar()    
         self.target_ip_var = tk.StringVar()    
         self.target_udp_var = tk.StringVar()    
+        self.rx_sync_var = tk.StringVar()
+        self.tx_sync_var = tk.StringVar()
+        self.help_var = tk.StringVar()
 
         self.create_panel()
         self.create_window_tabs()
 
-        # plots in GUI frame tabs
-        self.fig = plt.Figure()
-        plot1 = dp.DrawPlots(self.fig, self.tab3)
-
+        # put displays in GUI frame tabs
         self.create_config_frame(self.tab1)
         self.create_data_view(self.tab2)
+        self.plot1 = dp.DrawPlots(self.fig, self.tab3) # needs to be assigned as "self.<plot>"
+
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -56,19 +59,16 @@ class GUI(tk.Tk):
         ttk.Label(panel, text="RX").grid(column=1, row=0, sticky='nesw', padx=5)
         ttk.Label(panel, text="TX").grid(column=2, row=0, sticky='nesw', padx=5)
 
-        self.rx_sync_var = tk.StringVar()
         self.rx_sync_var.set("--")
         self.rx_sync_lbl = ttk.Label(panel, background='red', foreground='white', textvariable=self.rx_sync_var)
         self.rx_sync_lbl.grid(column=1, row=1, sticky='nesw', padx=5, pady=2)
 
-        self.tx_sync_var = tk.StringVar()
         self.tx_sync_var.set("--")
         self.tx_sync_lbl = ttk.Label(panel, background='blue', foreground='white', textvariable=self.tx_sync_var)
         self.tx_sync_lbl.grid(column=2, row=1, sticky='nesw', padx=5, pady=2)
 
         panel.bind("<Enter>", self.on_enter) # tool-tip help
         panel.bind("<Leave>", self.on_leave)
-        self.help_var = tk.StringVar()
         self.help_var.set(" ")
         help_lbl = ttk.Label(self, textvariable=self.help_var, foreground='dark orange')
         help_lbl.configure( font=('Consolas', 10, 'italic'))
