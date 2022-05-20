@@ -99,13 +99,15 @@ class GUI(tk.Tk):
             self.target_ip_var, self.target_udp_var)
         udp_ip = self.nc.read_network_config()
 
-        self.host_ip_var.set(udp_ip[0])
+        self.host_ip_var.set(udp_ip[0]) 
         self.host_udp_var.set(udp_ip[1])
         self.target_ip_var.set(udp_ip[2])
         self.target_udp_var.set(udp_ip[3])
 
-        self.server = ts.TargetSimulator(self.target_ip_var.get(), int(self.target_udp_var.get())) 
-        self.client = ka.KeepAlive(self.host_ip_var.get(), int(self.host_udp_var.get()), "Hello Worldlings!")    
+        # server used only to simulate the remote target when testing
+        # client gets target ip address/port and server gets client ip address/port
+        self.server = ts.TargetSimulator(self.host_ip_var.get(), int(self.host_udp_var.get())) 
+        self.client = ka.KeepAlive(self.target_ip_var.get(), int(self.target_udp_var.get()), "Hello Worldlings!")    
         self.start_threads()
     
         self.config = ttk.LabelFrame(tab, text="Network Configuration") 

@@ -15,7 +15,7 @@ class KeepAlive:
         self.msg_str = msg_str    # "Hello, World!"
 
         self.thread = th.Thread(target=self.hello)
-        self.time_ticks = 0.25 # seconds per tick
+        self.time_ticks = 1 # seconds per tick
         self.run_time_tot = 0 # total number of time ticks
         self.running = False
 
@@ -34,7 +34,8 @@ class KeepAlive:
     def hello(self):
         """ Method is invoked as the client-side thread. """
         while self.running: 
-            self.sock.sendto(bytes(self.msg_str, 'utf-8'), (self.udp_ip, self.udp_port))
+            send_msg = self.msg_str + " count: " + str(self.msg_count_tx_curr)
+            self.sock.sendto(bytes(send_msg, 'utf-8'), (self.udp_ip, self.udp_port))
             self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
             data, addr = self.sock.recvfrom(1024)
