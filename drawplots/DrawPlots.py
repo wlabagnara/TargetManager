@@ -30,7 +30,7 @@ class DrawPlots(tk.Tk):
 
     def update(self, i):
         """ Create a plot of real-time data """
-        data = pd.read_csv('sim_data.csv')
+        data = pd.read_csv('data_sim_out.csv') # ( 'sim_data.csv')
         x = data['x_value']
         y1 = data['total_1']
         self.ax.cla() 

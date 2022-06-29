@@ -7,6 +7,8 @@ import time as t
 import threading as th
 from collections import deque
 
+import datasim.DataSim as ds
+
 class KeepAlive:
     """ Keep alive class for implementation of the host (client-side) UDP/IP connection"""
     def __init__(self, udp_ip, udp_port, msg_str):
@@ -31,6 +33,11 @@ class KeepAlive:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # IPv4 and UDP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Allow address/port reuse immediately 
 
+        # data simulate init
+        self.data_sim = ds.DataSim()
+
+
+
     def hello(self):
         """ Method is invoked as the client-side thread. """
         while self.running: 
@@ -44,6 +51,7 @@ class KeepAlive:
             self.rx_queue.append(msg_rx)
             self.msg_count_rx_curr = self.msg_count_rx_curr + 1
             self.run_time_tot = self.run_time_tot + self.time_ticks
+            self.data_sim.datasim() # simulate data (for GUI plotting) as if received from remote target
             t.sleep(self.time_ticks)
 
     def get_rx_counts(self):

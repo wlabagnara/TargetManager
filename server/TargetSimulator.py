@@ -1,17 +1,10 @@
 """
     Target Simulator - Simulates a target system (Server) that the Target Manager Client is managing.
 """
-# from lib2to3.pgen2.token import EQUAL
-from bdb import Breakpoint
+
 import socket
 import time as t
 import threading as th
-
-# datagen simulator
-import csv
-import random
-from warnings import catch_warnings
-
 
 class TargetSimulator:
     """ Target simulator class for implementation of the target (server-side) UDP/IP connection"""
@@ -33,8 +26,6 @@ class TargetSimulator:
 
         try:                       
             self.sock.bind((udp_ip, udp_port))
-            # datagen simulate init
-            self.datagen_init()
         except:
             print(f"Exception: cannot establish target socket!")
 
@@ -62,9 +53,7 @@ class TargetSimulator:
                 data, addr = self.sock.recvfrom(1024)
                 self.msg_count_rx_curr = self.msg_count_rx_curr + 1
                 # print (f"Server: message {self.msg_count_rx_curr} received from client")
-                
-                self.datagen() # generate a simulated data for every receive sample
-                
+                                
                 msg = f' {data.decode()} - {self.msg_count_rx_curr}'  
                 self.sock.sendto(msg.encode(), addr)
                 self.msg_count_tx_curr = self.msg_count_tx_curr + 1
@@ -88,30 +77,3 @@ class TargetSimulator:
         """ Gracefully stops the server-side thread."""
         print(f'Stopping Target Simulator (Server) Thread!')
         self.running = False
-
-    def datagen_init(self):
-        self.x_value = 0
-        self.total_1 = 1000
-        self.total_2 = 1000
-        self.fieldnames = ["x_value", "total_1", "total_2"]
-        self.datagen_file = 'sim_data.csv'
-    
-        with open(self.datagen_file, 'w') as csv_file:
-            self.csv_writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
-            self.csv_writer.writeheader()
-
-    def datagen(self):
-            with open(self.datagen_file, 'a') as csv_file:
-                self.csv_writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
-                info = {
-                    "x_value": self.x_value,
-                    "total_1": self.total_1,
-                    "total_2": self.total_2
-                }
-                self.csv_writer.writerow(info)
-                # print(self.x_value, self.total_1, self.total_2)
-                self.x_value += 1
-                self.total_1 = self.total_1 + random.randint(-10, 8)
-                self.total_2 = self.total_2 + random.randint(-8, 10)
-        
-
