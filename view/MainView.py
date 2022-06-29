@@ -41,14 +41,22 @@ class GUI(tk.Tk):
         self.tx_sync_var = tk.StringVar()
         self.help_var = tk.StringVar()
 
+        # Boost model variables
+        self.inp1_var = tk.StringVar()    
+        self.inp2_var = tk.StringVar()    
+        self.inp3_var = tk.StringVar()  
+        self.inp1_var.set("0.0") 
+        self.inp2_var.set("0.0") 
+        self.inp3_var.set("0.0") 
+  
         self.create_panel()
         self.create_window_tabs()
 
         # put displays in GUI frame tabs
-        self.create_config_frame(self.tab1)
+        self.create_network_frm(self.tab1)
         self.create_data_view(self.tab2)
         self.plot1 = dp.DrawPlots(self.fig, self.tab3) # needs to be assigned as "self.<plot>"
-
+        self.create_boost_frm(self.tab4)
 
     def create_panel(self):
         """ Create a status panel to display indicators and such."""
@@ -81,7 +89,7 @@ class GUI(tk.Tk):
         nb.enable_traversal() # can use arrow keys to switch tabs
         # create first tabs frame 
         self.tab1 = ttk.Frame(nb) # use this frame to put objects under this tab
-        nb.add(self.tab1, text='Configuraton ', underline=0, padding=5)
+        nb.add(self.tab1, text='Network ', underline=0, padding=5)
         # create second tabs frame
         self.tab2 = ttk.Frame(nb) # use this frame to put objects under this tab
         nb.add(self.tab2, text='Data  ', underline=0, padding=5)
@@ -90,9 +98,9 @@ class GUI(tk.Tk):
         nb.add(self.tab3, text='Plots  ', underline=0, padding=5)
         # create fourth tabs frame
         self.tab4 = ttk.Frame(nb) # use this frame to put objects under this tab
-        nb.add(self.tab4, text='More  ', underline=0, padding=5)
+        nb.add(self.tab4, text='Boost  ', underline=0, padding=5)
 
-    def create_config_frame(self, tab):
+    def create_network_frm(self, tab):
         """ Create a view for the configuration items."""
         
         self.nc = net.NetConfig(self.host_ip_var, self.host_udp_var,
@@ -110,7 +118,7 @@ class GUI(tk.Tk):
         self.client = ka.KeepAlive(self.target_ip_var.get(), int(self.target_udp_var.get()), "Hello Worldlings!")    
         self.start_threads()
     
-        self.config = ttk.LabelFrame(tab, text="Network Configuration") 
+        self.config = ttk.LabelFrame(tab, text="Configuration") 
         
         self.config.columnconfigure(0, weight=1)
         self.config.columnconfigure(1, weight=10)
@@ -131,7 +139,7 @@ class GUI(tk.Tk):
         ttk.Label(self.config, text='Target UDP Port:  ').grid(column=0, row=3, sticky=tk.W)
         ttk.Entry(self.config, textvariable=self.target_udp_var, width=frm_width).grid(column=1, row=3, sticky=tk.W)
 
-        ttk.Button(self.config, text='Save Configuration', command=self.nc.save_network_config).grid(column=0, row=4, sticky='nesw')
+        ttk.Button(self.config, text='Save ', command=self.nc.save_network_config).grid(column=0, row=4, sticky='nesw')
 
     def create_data_view(self, tab):
         """ Create a text window for displaying captured data and such. """
@@ -142,6 +150,38 @@ class GUI(tk.Tk):
         scrollbar.grid(column=1, row=1, sticky=tk.NS)
         self.data['yscrollcommand'] = scrollbar.set
         self.body.grid(column=0, row=1, sticky=tk.NSEW, padx=10, pady=10)
+
+    # TODO - encapsulate in the boost model class
+    def boost_submit_inputs(self):
+        print(f"\nSubmitted boost model inputs:")
+        print(f"   {self.inp1_var.get()}, ")
+        print(f"   {self.inp2_var.get()}, ")
+        print(f"   {self.inp3_var.get()} ")
+
+    def create_boost_frm(self, tab):
+        """ Create a view for the boost model items."""
+        
+        # TODO - instantiate the boost model class
+
+        self.boost = ttk.LabelFrame(tab, text="Configuration") 
+        
+        self.boost.columnconfigure(0, weight=1)
+        self.boost.columnconfigure(1, weight=10)
+        self.boost.columnconfigure(2, weight=1)
+        self.boost.grid(column=0, row=0, sticky=tk.NSEW, padx=10, pady=10)
+
+        frm_width = 80
+
+        ttk.Label(self.boost, text='Inport 1:  ').grid(column=0, row=0, sticky=tk.W)
+        ttk.Entry(self.boost, textvariable=self.inp1_var, width=frm_width).grid(column=1, row=0, sticky=tk.W)
+
+        ttk.Label(self.boost, text='Inport 2:  ').grid(column=0, row=1, sticky=tk.W)
+        ttk.Entry(self.boost, textvariable=self.inp2_var, width=frm_width).grid(column=1, row=1, sticky=tk.W)
+
+        ttk.Label(self.boost, text='Inport 3:  ').grid(column=0, row=2, sticky=tk.W)
+        ttk.Entry(self.boost, textvariable=self.inp3_var, width=frm_width).grid(column=1, row=2, sticky=tk.W)
+
+        ttk.Button(self.boost, text='Submit ', command=self.boost_submit_inputs).grid(column=0, row=4, sticky='nesw')
 
     def check_status(self):
         """ Poll the various status information for GUI presentation."""
