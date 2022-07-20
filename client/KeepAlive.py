@@ -21,7 +21,9 @@ class KeepAlive:
         self.run_time_tot = 0 # total number of time ticks
         self.running = False
 
-        self.rx_queue = deque()
+        self.rx_queue = deque() # receive data from target hardware
+        self.tx_msg = "IDLE"
+        self.tx_queue = deque() # send data to target hardware
 
         self.msg_count_rx_curr = 0 # Message counts
         self.msg_count_rx_prev = 0
@@ -41,7 +43,12 @@ class KeepAlive:
     def hello(self):
         """ Method is invoked as the client-side thread. """
         while self.running: 
-            send_msg = self.msg_str + " count: " + str(self.msg_count_tx_curr)
+            if self.tx_queue:
+                msg_tx = self.tx_queue.popleft()
+            else:
+                msg_tx = self.tx_msg # keep transmitting last value
+
+            send_msg = self.msg_str + " count: " + str(self.msg_count_tx_curr) + " model in: " + msg_tx
             self.sock.sendto(bytes(send_msg, 'utf-8'), (self.udp_ip, self.udp_port))
             self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
@@ -70,6 +77,13 @@ class KeepAlive:
         """ Get data from queue when available"""
         if self.rx_data_avail():
             return  self.rx_queue.popleft()
+
+    def tx_data(self, msg_data):
+        """ Send data to target hardware when thread is running"""
+        if (self.running == True):
+            msg_data_str = str(msg_data)
+            self.tx_queue.append(msg_data_str)
+            self.tx_msg = msg_data_str # hold on to last queue entry
 
     def get_tx_counts(self):
         """ Get the total number of messages transmitted by the client."""

@@ -157,6 +157,7 @@ class GUI(tk.Tk):
         print(f"   {self.inp1_var.get()}, ")
         print(f"   {self.inp2_var.get()}, ")
         print(f"   {self.inp3_var.get()} ")
+        self.client.tx_data(self.inp1_var.get())
 
     def create_boost_frm(self, tab):
         """ Create a view for the boost model items."""
