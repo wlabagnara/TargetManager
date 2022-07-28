@@ -48,12 +48,12 @@ class KeepAlive:
             else:
                 msg_tx = self.tx_msg # keep transmitting last value
 
-            send_msg = self.msg_str + " count: " + str(self.msg_count_tx_curr) + " model in: " + msg_tx
+            send_msg = self.msg_str + " " + str(self.msg_count_tx_curr) + ": MSG: " + msg_tx
             self.sock.sendto(bytes(send_msg, 'utf-8'), (self.udp_ip, self.udp_port))
             self.msg_count_tx_curr = self.msg_count_tx_curr + 1
 
             data, addr = self.sock.recvfrom(1024)
-            msg_rx = f"Client received message: {data.decode()}"
+            msg_rx = f"HostRx: {data.decode()}"
             # print(f"{msg_rx}")
             self.rx_queue.append(msg_rx)
             self.msg_count_rx_curr = self.msg_count_rx_curr + 1

@@ -115,7 +115,7 @@ class GUI(tk.Tk):
         # server used only to simulate the remote target when testing
         # client gets target ip address/port and server gets client ip address/port
         self.server = ts.TargetSimulator(self.host_ip_var.get(), int(self.host_udp_var.get())) 
-        self.client = ka.KeepAlive(self.target_ip_var.get(), int(self.target_udp_var.get()), "Hello Worldlings!")    
+        self.client = ka.KeepAlive(self.target_ip_var.get(), int(self.target_udp_var.get()), "HostTx ")    
         self.start_threads()
     
         self.config = ttk.LabelFrame(tab, text="Configuration") 
